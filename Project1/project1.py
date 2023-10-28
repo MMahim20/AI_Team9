@@ -33,9 +33,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Build random forest model
 clf = RandomForestClassifier(max_depth=2, random_state=0)
 
-# Build random forest model
-clf = RandomForestClassifier(max_depth=2, random_state=0)
-
 # Train model with training data
 clf.fit(X_train, y_train)
 
