@@ -4,6 +4,17 @@ from sklearn.metrics import accuracy_score
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+import keras_core as keras
+import keras_nlp
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# adapted from the tutorial: https://www.kaggle.com/code/alexia/kerasnlp-starter-notebook-disaster-tweets
+
+import os
+os.environ['KERAS_BACKEND'] = 'tensorflow'
 
 # Import and explore data
 df = pd.read_csv("train.csv")
@@ -34,18 +45,28 @@ X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_st
 
 # Load pre-trained embedding model
 ###CHANGE
-clf = RandomForestClassifier(max_depth=2, random_state=0)
+preset= "distil_bert_base_en_uncased"
 
+# Use a shorter sequence length.
+preprocessor = keras_nlp.models.DistilBertPreprocessor.from_preset(preset,
+                                                                   sequence_length=160,
+                                                                   name="preprocessor_4_tweets"
+                                                                  )
+
+# Pretrained classifier.
+classifier = keras_nlp.models.DistilBertClassifier.from_preset(preset,
+                                                               preprocessor = preprocessor, 
+                                                               num_classes=2)
+
+classifier.summary()
 # Train model with training data
-###CHANGE
-clf.fit(X_train, y_train)
+
+
 
 # Use validation data to test accuracy during training
-###CHANGE
-y_pred = clf.predict(X_val)
 
-accuracy = accuracy_score(y_val, y_pred)
-print("Training Accuracy: ", accuracy)
+
+
 
 # Fine-tune pre-trained model on tweets
 
@@ -63,8 +84,9 @@ X_test = test_df['text']
 print(X_test)
 
 ###CHANGE
-y_pred = clf.predict(X_test)
+# y_pred = 
 
 # output submission file
-output = pd.DataFrame({'id': test_df.id, 'target': y_pred})
-output.to_csv('submission.csv', index=False)
+### CHANGE based on y_pred
+# output = pd.DataFrame({'id': test_df.id, 'target': y_pred})
+# output.to_csv('submission.csv', index=False)
