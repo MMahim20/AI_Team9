@@ -17,7 +17,7 @@ import os
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 
 # Import and explore data
-df = pd.read_csv("train.csv")
+df = pd.read_csv("Project2/train.csv")
 print(df)
 
 # Create X and y matrices
@@ -41,7 +41,7 @@ print(X)
 # Split training data into training and validation set
 
 # 20% testing, 80% training
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Load pre-trained embedding model
 ###CHANGE
@@ -60,13 +60,13 @@ classifier = keras_nlp.models.DistilBertClassifier.from_preset(preset,
 
 classifier.summary()
 # Train model with training data
-
+classifier.fit(X_train, y_train)
 
 
 # Use validation data to test accuracy during training
-
-
-
+y_pred = classifier.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("Training Accuracy: ", accuracy)
 
 # Fine-tune pre-trained model on tweets
 
@@ -77,7 +77,7 @@ classifier.summary()
 
 ############## TESTING
 # Use test data set to get final predicted goodness
-test_df = pd.read_csv("test.csv")
+test_df = pd.read_csv("Project2/test.csv")
 
 # Get feature matrix from test data
 X_test = test_df['text']
