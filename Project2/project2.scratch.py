@@ -101,12 +101,16 @@ def displayConfusionMatrix(y_true, y_pred, dataset):
 # Use validation data to test accuracy during training
 y_pred = classifier.predict(X_val)
 
-displayConfusionMatrix(y_train, y_pred, "Training")
+classifier.save('tweet_disaster.model')
+
+
 
 print("y_test shape:", y_val.shape)
 print("y_pred shape:", y_pred.shape)
 print("y_test values:", y_val)
 print("y_pred values:", y_pred)
+
+displayConfusionMatrix(y_train, y_pred, "Training")
 # accuracy = accuracy_score(y_test, y_pred)
 # print("Training Accuracy: ", accuracy)
 
