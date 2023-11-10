@@ -20,7 +20,7 @@ import os
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 
 # Import and explore data
-df = pd.read_csv("train.csv")
+df = pd.read_csv("Project2/train.csv")
 print(df)
 NUM_TRAINING_EXAMPLES = df.shape[0]
 BATCH_SIZE = 32
@@ -54,13 +54,13 @@ X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=VAL_SPLIT, ran
 #create or load a model
 import os
 
-file_path = r"tweet_disaster.h5"
+file_path = "tweet_disaster.model"
 
 if os.path.exists(file_path):
     # Load the saved model
     print("loading saved model")
     from keras.models import load_model
-    classifier = load_model("tweet_disaster.h5")
+    classifier = load_model(file_path)
 else:
     print("training new model")
     # Load pre-trained embedding model
@@ -95,7 +95,7 @@ else:
                             )
 
 
-    classifier.save('tweet_disaster.model')
+    classifier.save(file_path)
 
 def displayConfusionMatrix(y_true, y_pred, dataset):
     disp = ConfusionMatrixDisplay.from_predictions(
@@ -109,6 +109,8 @@ def displayConfusionMatrix(y_true, y_pred, dataset):
     f1_score = tp / (tp+((fn+fp)/2))
 
     disp.ax_.set_title("Confusion Matrix on " + dataset + " Dataset -- F1 Score: " + str(f1_score.round(2)))
+    plt.savefig("confusion_matrix.png")
+    plt.show()
 
 
 # Use validation data to test accuracy during training
@@ -128,7 +130,7 @@ displayConfusionMatrix(y_train, y_pred, "Training")
 
 ############## TESTING
 # Use test data set to get final predicted goodness
-test_df = pd.read_csv("test.csv")
+test_df = pd.read_csv("Project2/test.csv")
 
 # Get feature matrix from test data
 X_test = test_df['text']
@@ -137,7 +139,7 @@ X_test = test_df['text']
 print("\n generating submission\n")
 # print(np.argmax(classifier.predict(X_test), axis=1))
 
-sample_submission = pd.read_csv(r"Project2/sample_submission.csv")
+sample_submission = pd.read_csv("Project2/sample_submission.csv")
 sample_submission.head()
 
 sample_submission["target"] = np.argmax(classifier.predict(X_test), axis=1)
@@ -145,4 +147,4 @@ sample_submission["target"] = np.argmax(classifier.predict(X_test), axis=1)
 
 sample_submission.describe()
 
-sample_submission.to_csv(r"Project2/submission.csv", index=False)
+sample_submission.to_csv("Project2/submission.csv", index=False)
