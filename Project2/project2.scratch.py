@@ -53,37 +53,51 @@ print(X)
 # 20% testing, 80% training
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=VAL_SPLIT, random_state=42)
 
-# Load pre-trained embedding model
-###CHANGE
-preset= "distil_bert_base_en_uncased"
+#create or load a model
+import os
 
-# Use a shorter sequence length.
-preprocessor = keras_nlp.models.DistilBertPreprocessor.from_preset(preset,
-                                                                   sequence_length=160,
-                                                                   name="preprocessor_4_tweets"
-                                                                  )
+file_path = r"tweet_disaster.h5"
 
-# Pretrained classifier.
-classifier = keras_nlp.models.DistilBertClassifier.from_preset(preset,
-                                                               preprocessor = preprocessor, 
-                                                               num_classes=2)
+if os.path.exists(file_path):
+    # Load the saved model
+    print("loading saved model")
+    from keras.models import load_model
+    classifier = load_model("tweet_disaster.h5")
+else:
+    print("training new model")
+    # Load pre-trained embedding model
+    ###CHANGE
+    preset= "distil_bert_base_en_uncased"
 
-classifier.summary()
-# Train model with training data
-custom_optimizer = keras.optimizers.Adam(learning_rate=1e-5)
-classifier.compile(
-    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), #'binary_crossentropy',
-    optimizer=custom_optimizer,
-    metrics= ["accuracy"]  
-)
+    # Use a shorter sequence length.
+    preprocessor = keras_nlp.models.DistilBertPreprocessor.from_preset(preset,
+                                                                    sequence_length=160,
+                                                                    name="preprocessor_4_tweets"
+                                                                    )
 
-# Fit
-history = classifier.fit(x=X_train,
-                         y=y_train,
-                         batch_size=BATCH_SIZE,
-                         epochs=EPOCHS, 
-                         validation_data=(X_val, y_val)
-                        )
+    # Pretrained classifier.
+    classifier = keras_nlp.models.DistilBertClassifier.from_preset(preset,
+                                                                preprocessor = preprocessor, 
+                                                                num_classes=2)
+
+    classifier.summary()
+    # Train model with training data
+    classifier.compile(
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), #'binary_crossentropy',
+        optimizer=keras.optimizers.Adam(learning_rate=1e-5),
+        metrics= ["accuracy"]  
+    )
+
+    # Fit
+    history = classifier.fit(x=X_train,
+                            y=y_train,
+                            batch_size=BATCH_SIZE,
+                            epochs=EPOCHS, 
+                            validation_data=(X_val, y_val)
+                            )
+
+
+    classifier.save('tweet_disaster.model')
 
 def displayConfusionMatrix(y_true, y_pred, dataset):
     disp = ConfusionMatrixDisplay.from_predictions(
@@ -98,13 +112,13 @@ def displayConfusionMatrix(y_true, y_pred, dataset):
 
     disp.ax_.set_title("Confusion Matrix on " + dataset + " Dataset -- F1 Score: " + str(f1_score.round(2)))
 
+
+
+
 # Use validation data to test accuracy during training
-y_pred = classifier.predict(X_val)
+y_pred = classifier.predict(X_train)
 
-classifier.save('tweet_disaster.model')
-
-
-
+print("\n/*-------------------------------------------*/\n")
 print("y_test shape:", y_val.shape)
 print("y_pred shape:", y_pred.shape)
 print("y_test values:", y_val)
@@ -122,17 +136,30 @@ displayConfusionMatrix(y_train, y_pred, "Training")
 
 
 ############## TESTING
-# Use test data set to get final predicted goodness
+# # Use test data set to get final predicted goodness
 test_df = pd.read_csv("Project2/test.csv")
 
-# Get feature matrix from test data
+# # Get feature matrix from test data
 X_test = test_df['text']
-print(X_test)
+# print(X_test)
 
-###CHANGE
-y_pred = classifier.predict(X_test)
+# ###CHANGE
+# y_pred = classifier.predict(X_test)
 
-# output submission file
-### CHANGE based on y_pred
-output = pd.DataFrame({'id': test_df.id, 'target': y_pred})
-output.to_csv('submission.csv', index=False)
+# # output submission file
+# ### CHANGE based on y_pred
+# # output = pd.DataFrame({'id': test_df.id, 'target': y_pred})
+# # output.to_csv('submission.csv', index=False)
+
+print("\n generating submission\n")
+# print(np.argmax(classifier.predict(X_test), axis=1))
+
+sample_submission = pd.read_csv(r"Project2/sample_submission.csv")
+sample_submission.head()
+
+sample_submission["target"] = np.argmax(classifier.predict(X_test), axis=1)
+
+
+sample_submission.describe()
+
+sample_submission.to_csv(r"Project2/submission.csv", index=False)
