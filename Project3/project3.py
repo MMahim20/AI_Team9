@@ -23,3 +23,24 @@ y = df['label']
 
 # use the rest of the dataframe for matrix
 X = df.drop(['label'], axis=1)
+
+############## TRAINING AND VALIDATION TESTING
+# Split training data into training and validation set
+
+# 20% testing, 80% training
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+############## SET UP THE NETWORK
+# Create CNN network
+
+# Train network
+
+############## VISUALIZATIONS
+# Create visualizations showing prediction outcomes on training data
+
+
+############## TESTING
+# Use test data set to get final predicted goodness
+test_df = pd.read_csv("test.csv")
+# X_test = test_df['text']
+# print(X_test)
