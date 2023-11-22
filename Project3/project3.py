@@ -14,6 +14,7 @@ from keras.optimizers import RMSprop
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ReduceLROnPlateau
 
+# adapted from the tutorial: https://www.kaggle.com/code/yassineghouzam/introduction-to-cnn-keras-0-997-top-6
 
 # Import and explore training data
 df = pd.read_csv("train.csv")
@@ -46,8 +47,6 @@ plt.show()
 
 ############## SET UP THE NETWORK
 # Create CNN network
-
-
 model = Sequential()
 
 model.add(Conv2D(filters = 32, kernel_size = (5,5),padding = 'Same', 
@@ -72,29 +71,11 @@ model.add(Dropout(0.5))
 model.add(Dense(10, activation = "softmax"))
 
 # Define the optimizer
-optimizer = RMSprop(lr=0.001, rho=0.9, epsilon=1e-08, decay=0.0)
+optimizer = tf.keras.optimizers.legacy.RMSprop(lr=0.001, rho=0.9, epsilon=1e-08, decay=0.0)
 # Compile the model
 model.compile(optimizer = optimizer , loss = "categorical_crossentropy", metrics=["accuracy"])
 
 # Train network
-
-############## VISUALIZATIONS
-# Create visualizations showing prediction outcomes on training data
-
-
-############## TESTING
-# Use test data set to get final predicted goodness
-test_df = pd.read_csv("test.csv")
-
-# Normalize the data to be on [0..1] scale
-X_test = test_df / 255.0
-
-# Reshape the data to be an image in 3 dimensions 28pixels x 28pixels x 1 channel for the Keras CNN
-X_test = X_test.values.reshape(-1,28,28,1)
-
-# X_test = test_df['text']
-# print(X_test)
-
 # Set a learning rate annealer
 learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=0.00001)
 
@@ -116,6 +97,9 @@ history = model.fit(datagen.flow(X_train, y_train, batch_size=batch_size),
                     epochs=epochs, validation_data=(X_val, y_val),
                     verbose=2, steps_per_epoch=X_train.shape[0] // batch_size,
                     callbacks=[learning_rate_reduction])
+
+############## VISUALIZATIONS
+# Create visualizations showing prediction outcomes on training data
 
 # Plot the loss and accuracy curves for training and validation
 fig, ax = plt.subplots(2,1)
@@ -153,3 +137,23 @@ Y_pred_classes = np.argmax(Y_pred, axis=1)
 Y_true = np.argmax(y_val, axis=1)
 confusion_mtx = confusion_matrix(Y_true, Y_pred_classes)
 plot_confusion_matrix(confusion_mtx, classes=range(10))
+
+############## TESTING
+# Use test data set to get final predicted goodness
+test_df = pd.read_csv("test.csv")
+
+# Normalize the data to be on [0..1] scale
+X_test = test_df / 255.0
+
+# Reshape the data to be an image in 3 dimensions 28pixels x 28pixels x 1 channel for the Keras CNN
+X_test = X_test.values.reshape(-1,28,28,1)
+
+# get test results
+results = model.predict(X_test)
+
+# get the index with the maximum probability
+results = np.argmax(results,axis = 1)
+results = pd.Series(results,name="Label")
+
+submission = pd.concat([pd.Series(range(1,28001),name = "ImageId"),results],axis = 1)
+submission.to_csv("submission.csv",index=False)
