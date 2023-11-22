@@ -93,3 +93,62 @@ X_test = X_test.values.reshape(-1,28,28,1)
 
 # X_test = test_df['text']
 # print(X_test)
+
+# Set a learning rate annealer
+learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=0.00001)
+
+epochs = 30  # For better accuracy, increase the number of epochs
+batch_size = 86
+
+# Data Augmentation
+datagen = ImageDataGenerator(
+    featurewise_center=False, samplewise_center=False,
+    featurewise_std_normalization=False, samplewise_std_normalization=False,
+    zca_whitening=False, rotation_range=10, zoom_range=0.1,
+    width_shift_range=0.1, height_shift_range=0.1,
+    horizontal_flip=False, vertical_flip=False)
+
+datagen.fit(X_train)
+
+# Fit the model
+history = model.fit(datagen.flow(X_train, y_train, batch_size=batch_size),
+                    epochs=epochs, validation_data=(X_val, y_val),
+                    verbose=2, steps_per_epoch=X_train.shape[0] // batch_size,
+                    callbacks=[learning_rate_reduction])
+
+# Plot the loss and accuracy curves for training and validation
+fig, ax = plt.subplots(2,1)
+ax[0].plot(history.history['loss'], color='b', label="Training loss")
+ax[0].plot(history.history['val_loss'], color='r', label="Validation loss", axes=ax[0])
+ax[0].legend(loc='best', shadow=True)
+
+ax[1].plot(history.history['accuracy'], color='b', label="Training accuracy")
+ax[1].plot(history.history['val_accuracy'], color='r', label="Validation accuracy")
+ax[1].legend(loc='best', shadow=True)
+
+# Function to plot confusion matrix
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, cm[i, j], horizontalalignment="center", color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+# Predict the values from the validation dataset
+Y_pred = model.predict(X_val)
+Y_pred_classes = np.argmax(Y_pred, axis=1)
+Y_true = np.argmax(y_val, axis=1)
+confusion_mtx = confusion_matrix(Y_true, Y_pred_classes)
+plot_confusion_matrix(confusion_mtx, classes=range(10))
