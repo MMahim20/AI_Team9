@@ -2,6 +2,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import itertools
 import matplotlib.image as mpimg
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
@@ -37,7 +38,7 @@ y = to_categorical(y, num_classes=10)
 ############## TRAINING AND VALIDATION TESTING
 # Split training data into training and validation set
 # 20% testing, 80% training
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # show example
 example = plt.imshow(X_train[0][:,:,0])
