@@ -42,8 +42,8 @@ y = to_categorical(y, num_classes=10)
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # show example
-example = plt.imshow(X_train[0][:,:,0])
-plt.show()
+# example = plt.imshow(X_train[0][:,:,0])
+# plt.show()
 
 ############## SET UP THE NETWORK
 # Create CNN network
@@ -106,10 +106,12 @@ fig, ax = plt.subplots(2,1)
 ax[0].plot(history.history['loss'], color='b', label="Training loss")
 ax[0].plot(history.history['val_loss'], color='r', label="Validation loss", axes=ax[0])
 ax[0].legend(loc='best', shadow=True)
+plt.show()
 
 ax[1].plot(history.history['accuracy'], color='b', label="Training accuracy")
 ax[1].plot(history.history['val_accuracy'], color='r', label="Validation accuracy")
 ax[1].legend(loc='best', shadow=True)
+# plt.show()
 
 # Function to plot confusion matrix
 def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
@@ -130,6 +132,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.show()
 
 # Predict the values from the validation dataset
 Y_pred = model.predict(X_val)
